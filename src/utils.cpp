@@ -36,7 +36,7 @@
 #include <QDebug>
 #include <QDateTime>
 #include <QDir>
-#include <QtWebKitWidgets/QWebFrame>
+#include <QWebFrame>
 
 static QString findScript(const QString& jsFilePath, const QString& libraryPath)
 {
@@ -91,24 +91,27 @@ bool printDebugMessages = false;
 void messageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg)
 {
     Q_UNUSED(context);
-    QDateTime now = QDateTime::currentDateTime();
+    QString now = QDateTime::currentDateTime().toString(Qt::ISODate);
 
     switch (type) {
+    case QtInfoMsg:
+        fprintf(stderr, "%s [INFO] %s\n", qPrintable(now), qPrintable(msg));
+        break;
     case QtDebugMsg:
         if (printDebugMessages) {
-            fprintf(stderr, "%s [DEBUG] %s\n", qPrintable(now.toString(Qt::ISODate)), qPrintable(msg));
+            fprintf(stderr, "%s [DEBUG] %s\n", qPrintable(now), qPrintable(msg));
         }
         break;
     case QtWarningMsg:
         if (printDebugMessages) {
-            fprintf(stderr, "%s [WARNING] %s\n", qPrintable(now.toString(Qt::ISODate)), qPrintable(msg));
+            fprintf(stderr, "%s [WARNING] %s\n", qPrintable(now), qPrintable(msg));
         }
         break;
     case QtCriticalMsg:
-        fprintf(stderr, "%s [CRITICAL] %s\n", qPrintable(now.toString(Qt::ISODate)), qPrintable(msg));
+        fprintf(stderr, "%s [CRITICAL] %s\n", qPrintable(now), qPrintable(msg));
         break;
     case QtFatalMsg:
-        fprintf(stderr, "%s [FATAL] %s\n", qPrintable(now.toString(Qt::ISODate)), qPrintable(msg));
+        fprintf(stderr, "%s [FATAL] %s\n", qPrintable(now), qPrintable(msg));
         abort();
     }
 }
@@ -132,7 +135,7 @@ bool injectJsInFrame(const QString& jsFilePath, const QString& jsFileLanguage, c
         return false;
     }
     // Execute JS code in the context of the document
-    targetFrame->evaluateJavaScript(scriptBody, QString(JAVASCRIPT_SOURCE_CODE_URL).arg(QFileInfo(scriptPath).fileName()));
+    targetFrame->evaluateJavaScript(scriptBody);
     return true;
 }
 
@@ -147,10 +150,10 @@ bool loadJSForDebug(const QString& jsFilePath, const QString& jsFileLanguage, co
     QString scriptBody = jsFromScriptFile(scriptPath, jsFileLanguage, jsFileEnc);
 
     scriptBody = QString("function __run() {\n%1\n}").arg(scriptBody);
-    targetFrame->evaluateJavaScript(scriptBody, QString(JAVASCRIPT_SOURCE_CODE_URL).arg(QFileInfo(scriptPath).fileName()));
+    targetFrame->evaluateJavaScript(scriptBody);
 
     if (autorun) {
-        targetFrame->evaluateJavaScript("__run()", QString());
+        targetFrame->evaluateJavaScript("__run()");
     }
 
     return true;

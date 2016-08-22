@@ -57,6 +57,7 @@
 
 #if defined(_WIN32) && !defined(__SYMBIAN32__) // Windows specific
 #define _WIN32_WINNT 0x0400 // To make it link in VS2005
+#include <winsock2.h>
 #include <windows.h>
 
 #ifndef PATH_MAX
@@ -67,7 +68,6 @@
 #include <process.h>
 #include <direct.h>
 #else // _WIN32
-#include <winsock2.h>
 #include <io.h>
 #include <fcntl.h>
 
@@ -139,10 +139,12 @@ typedef struct {HANDLE signal, broadcast;} pthread_cond_t;
 typedef DWORD pthread_t;
 #define pid_t HANDLE // MINGW typedefs pid_t to int. Using #define here.
 
+#if _MSC_VER < 1900
 struct timespec {
   long tv_nsec;
   long tv_sec;
 };
+#endif
 
 static int pthread_mutex_lock(pthread_mutex_t *);
 static int pthread_mutex_unlock(pthread_mutex_t *);
